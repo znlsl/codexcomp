@@ -3,6 +3,34 @@
 Notable changes to codexcomp. Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer with `0.0.1`-level steps for fixes.
 
+## [0.3.8] - 2026-07-17
+
+### Fixed
+- Upstream connection pools recover after exhaustion and failed proxy handshakes.
+- Retired upstream clients drain without aborting active streams, and remain available for
+  all continuation rounds that share the same per-client generation lease.
+
+## [0.3.7] - 2026-07-10
+
+### Fixed
+- Upstream connection failures are translated consistently into downstream `502` responses
+  instead of being retried inside the proxy.
+
+### Added
+- A hard 6×6 Sudoku A/B evaluation, with opt-in parallel runs and explicit high-effort
+  timeouts.
+
+## [0.3.6] - 2026-07-08
+
+### Added
+- The packaged `codexcomp-eval` command and its candy A/B evaluation.
+
+## [0.3.5] - 2026-07-08
+
+### Fixed
+- Continuation rounds with zero reasoning tokens are classified as `zero-stall` and nudged
+  again within the existing continuation budget; exhausted stalls still flush the answer.
+
 ## [0.3.4] - 2026-07-07
 
 Transport-protocol fidelity release — all changes live-verified against the real backend
