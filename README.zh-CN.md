@@ -231,8 +231,10 @@ uv run python test_ws.py          # 传输层自测（WS 协议、响应头）�
 uv run codexcomp                  # 本地运行
 ```
 
-发布经 PyPI Trusted Publishing（OIDC，无存储 token）：推 `v*` tag 即自动构建并上传。
-版本历史见 [CHANGELOG.md](CHANGELOG.md)。
+发布经 PyPI Trusted Publishing（OIDC，无存储 token）：先把候选版本提交到 `master`，
+等待该同一提交的 CI 全绿，再推送匹配的带注解 `v*` tag。tag 不移动、不复用；已打 tag
+的候选若失败，修复后发布下一个 patch。Release 会重跑共享 CI，并在上传前校验 tag、
+包版本和 `master` 祖先关系。版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 参与贡献
 

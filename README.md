@@ -258,8 +258,11 @@ uv run python test_ws.py          # transport self-test (WS protocol, headers) â
 uv run codexcomp                  # run locally
 ```
 
-Releases go out via PyPI Trusted Publishing (OIDC, no stored token): push a `v*` tag to build
-and publish. Version history: [CHANGELOG.md](CHANGELOG.md).
+Releases go out via PyPI Trusted Publishing (OIDC, no stored token). Put the candidate version
+on `master`, wait for CI on that exact commit to pass, then push a matching annotated `v*` tag.
+Tags are immutable: a failed tagged candidate is fixed in the next patch, never moved or reused.
+The release workflow reruns the shared CI gate and verifies that the tag matches the package
+version and points into `master` before publishing. Version history: [CHANGELOG.md](CHANGELOG.md).
 
 ## Contributing
 

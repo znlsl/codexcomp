@@ -12,14 +12,55 @@ on:
       - "v*"
 
 jobs:
+  quality:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+
   build:
+    needs: quality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate immutable release identity
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git cat-file -t "refs/tags/${RELEASE_TAG}")" = tag
+          test "$(git rev-list -n1 "refs/tags/${RELEASE_TAG}")" = "${RELEASE_SHA}"
+          git fetch --no-tags origin master
+          git merge-base --is-ancestor "${RELEASE_SHA}" origin/master
+          python - <<'PY'
+          import os
+          import tomllib
+          from pathlib import Path
+
+          version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+          expected = f"v{version}"
+          actual = os.environ["RELEASE_TAG"]
+          if actual != expected:
+              raise SystemExit(f"release tag {actual!r} does not match {expected!r}")
+          PY
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
       - name: Build sdist + wheel
         run: uv build
+      - name: Smoke test wheel
+        run: uv run --isolated --no-project --with dist/*.whl codexcomp --help
+      - name: Smoke test source distribution
+        run: uv run --isolated --no-project --with dist/*.tar.gz codexcomp --help
       - uses: actions/upload-artifact@v4
         with:
           name: dist
