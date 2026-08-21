@@ -13,5 +13,6 @@
 
 ## 文档与发布
 
+- Issue tracker 契约见 `docs/agents/issue-tracker.md`。
 - 对用户可见的行为，让 `README.md` 与 `README.zh-CN.md` 保持一致。保留 neteroster/CodexCont 的机制致谢，并让 `LICENSE` 保持纯 MIT 文本。
 - 发布时先在候选提交中步进包版本，再合并并推送 `master`；必须等该**同一 SHA** 的普通 CI 全绿后，才推送匹配的带注解 `v*` tag。tag 一旦出现在远端就不移动或复用；失败修复使用下一个 patch。Release 会再次复用共享 CI，并校验 tag、包版本和 master 祖先关系，然后发布 PyPI；之后创建 GitHub Release。systemd unit 绝不自行更新：只有明确存在活跃的本地 uv-tool/service 部署时，才以 `uv tool upgrade codexcomp` 和 `systemctl --user restart codexcomp` 收尾；否则跳过这些命令，不能臆测存在部署。

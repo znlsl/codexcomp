@@ -20,7 +20,7 @@ uv build                       # build sdist + wheel
 
 没有 pytest/lint/typecheck 设置——两个测试都是带 assert 的纯脚本，直接运行它们。改 `fold.py` 前先跑 `test_fold.py`，改 `server.py` 的 WebSocket 路径前先跑 `test_ws.py`。
 
-发布清单（每一步都做，按顺序）：在候选提交的 `pyproject.toml` 中 bump `version` → commit → push `master` → **等待该同一 SHA 的普通 CI 全绿** → 确认远端 tag 与 PyPI 尚未占用该版本 → push 匹配的带注解 `v*` tag。远端 tag 不移动、不复用；tag 后才发现问题时修复并发布下一个 patch。`.github/workflows/release.yml` 会再次调用共享 CI，校验 annotated tag、包版本、tag SHA 与 master 祖先关系，再经 Trusted Publishing 发布到 PyPI（OIDC，无存储 token）→ 确认该版本已在 PyPI 上线 → 用 `gh release create v* --title … --notes-file …` 创建 GitHub Release（workflow 不会做这一步；推了 tag 却没有 Release 会让 Releases 页显示过时的 latest；notes 以英文为主，在一条 `---` 之后附一小段 `### 中文说明`）→ 如果本机有活跃的本地部署，升级它：`uv tool upgrade codexcomp` + `systemctl --user restart codexcomp`。systemd unit 运行来自 `~/.local/bin/codexcomp` 的 uv-tool 快照，且绝不自更新——跳过升级会让活跃代理停留在过时版本。本地部署当前已卸载（gpt-5.6 显示 0pp 提升，见 README FAQ），所以在为 gpt-5.5 用途重新安装代理之前，这一步是空操作。
+发布清单（每一步都做，按顺序）：在候选提交的 `pyproject.toml` 中 bump `version` → commit → push `master` → **等待该同一 SHA 的普通 CI 全绿** → 确认远端 tag 与 PyPI 尚未占用该版本 → push 匹配的带注解 `v*` tag。远端 tag 不移动、不复用；tag 后才发现问题时修复并发布下一个 patch。`.github/workflows/release.yml` 会再次调用共享 CI，校验 annotated tag、包版本、tag SHA 与 master 祖先关系，再经 Trusted Publishing 发布到 PyPI（OIDC，无存储 token）→ 确认该版本已在 PyPI 上线 → 用 `gh release create v* --title … --notes-file …` 创建 GitHub Release（workflow 不会做这一步；推了 tag 却没有 Release 会让 Releases 页显示过时的 latest；notes 以英文为主，在一条 `---` 之后附一小段 `### 中文说明`）→ systemd unit 运行来自 `~/.local/bin/codexcomp` 的 uv-tool 快照，且绝不自更新：只有明确存在活跃的本地 uv-tool/service 部署时，才以 `uv tool upgrade codexcomp` + `systemctl --user restart codexcomp` 收尾；否则跳过这一步，不能臆测存在部署。
 
 ## 架构
 
@@ -41,5 +41,6 @@ uv build                       # build sdist + wheel
 - **干净轮次逐字节透传**；折叠路径只在检测到截断时才介入。折叠的终止事件报告单响应用量（input 取自 round 1，reasoning 求和），真实累计成本在 `metadata.proxy_billed_usage` 下，逐轮明细在 `metadata.proxy_rounds` 下。
 - 没有终止事件的上游 EOF、流中途错误、以及续写打开失败，都以一个合成的 `response.incomplete` 收尾；被拒的 round 1 以 `response.failed` 收尾——绝不静默丢弃或伪造已完成的回答。这些全部在 `fold()` 内部铸造，而非在传输层。
 - `README.md` 与 `README.zh-CN.md` 并行维护——用户可见的改动两者都要改。
+- Issue tracker 契约见 `docs/agents/issue-tracker.md`。
 
 机制致谢（neteroster/CodexCont，MIT）保留在两个 README 和 `fold.py` docstring 中。`LICENSE` 保持纯 MIT 文本，不附加任何说明。
