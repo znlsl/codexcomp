@@ -64,7 +64,8 @@ token 的响应中约 44 % 恰好停在该边界——此为上游缺陷，尚�
 
 ## 快速开始
 
-依赖 [uv](https://docs.astral.sh/uv/) 与 Codex CLI（ChatGPT OAuth 登录；在 0.142.x 上验证）。
+依赖 [uv](https://docs.astral.sh/uv/) 与 Codex CLI（ChatGPT OAuth 登录；2026-07 在 Codex CLI
+0.142.x 上验证过，未针对更新的 Codex 版本重新验证）。
 
 ```bash
 uv tool install codexcomp                                  # 从 PyPI 安装
@@ -190,7 +191,11 @@ codexcomp-sudoku-eval -r xhigh,ultra,max        # 长推理压力矩阵
 ## 常见问题
 
 **会影响正常（未截断）的轮次吗？**
-不会。干净轮次逐字节透传；折叠路径只在检出 `518n−2` 截断时介入。
+不会——干净轮次内容忠实：正常 reasoning→output 形状下不丢失、不重排任何 output item，
+终止状态原样透传，且不额外插入上游轮次。但每个下游事件仍带代理自有的 `sequence_number`
+与重新编号的 `output_index`，非 reasoning items 会被缓冲、直到轮次确认干净才释放（干净
+与否只有到用时才知道），且每个终止事件都带 `metadata.proxy_rounds` /
+`metadata.proxy_billed_usage`。折叠路径只在检出 `518n−2` 截断时介入。
 
 **一次折叠的代价是什么？**
 续写轮会消耗额外的实际 token，由续写轮数上限（`--max-continue`，默认 3）约束。真实累计用量

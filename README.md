@@ -72,7 +72,8 @@ downstream response — Codex sees one complete, untruncated answer.
 
 ## Quick start
 
-Requires [uv](https://docs.astral.sh/uv/) and the Codex CLI (ChatGPT OAuth; tested on 0.142.x).
+Requires [uv](https://docs.astral.sh/uv/) and the Codex CLI (ChatGPT OAuth; tested against
+Codex CLI 0.142.x in 2026-07, not re-validated against newer Codex releases).
 
 ```bash
 uv tool install codexcomp                                  # from PyPI
@@ -208,8 +209,13 @@ cut exactly on a `518n−2` boundary, 15% vs 90% accuracy off/on — details in
 ## FAQ
 
 **Does it touch normal turns?**
-No. Clean rounds pass through byte-for-byte; the fold path only engages on a detected
-`518n−2` truncation.
+No — clean rounds are content-faithful: no output item is dropped or reordered for the
+normal reasoning → output shape, the terminal status passes through untouched, and no
+extra upstream round is added. But every downstream event still carries a proxy-owned
+`sequence_number` and a renumbered `output_index`, non-reasoning items are buffered and
+only released once a round is confirmed clean (cleanliness is only known at the end of a
+round), and every terminal event carries `metadata.proxy_rounds` / `metadata.proxy_billed_usage`.
+The fold path only engages on a detected `518n−2` truncation.
 
 **What does a fold cost?**
 Continuation rounds spend extra real tokens, bounded by the continuation cap

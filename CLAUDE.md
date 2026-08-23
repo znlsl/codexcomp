@@ -20,7 +20,7 @@ uv build                       # build sdist + wheel
 
 没有 pytest/lint/typecheck 设置——两个测试都是带 assert 的纯脚本，直接运行它们。改 `fold.py` 前先跑 `test_fold.py`，改 `server.py` 的 WebSocket 路径前先跑 `test_ws.py`。
 
-发布清单（每一步都做，按顺序）：在候选提交的 `pyproject.toml` 中 bump `version` → commit → push `master` → **等待该同一 SHA 的普通 CI 全绿** → 确认远端 tag 与 PyPI 尚未占用该版本 → push 匹配的带注解 `v*` tag。远端 tag 不移动、不复用；tag 后才发现问题时修复并发布下一个 patch。`.github/workflows/release.yml` 会再次调用共享 CI，校验 annotated tag、包版本、tag SHA 与 master 祖先关系，再经 Trusted Publishing 发布到 PyPI（OIDC，无存储 token）→ 确认该版本已在 PyPI 上线 → 用 `gh release create v* --title … --notes-file …` 创建 GitHub Release（workflow 不会做这一步；推了 tag 却没有 Release 会让 Releases 页显示过时的 latest；notes 以英文为主，在一条 `---` 之后附一小段 `### 中文说明`）→ systemd unit 运行来自 `~/.local/bin/codexcomp` 的 uv-tool 快照，且绝不自更新：只有明确存在活跃的本地 uv-tool/service 部署时，才以 `uv tool upgrade codexcomp` + `systemctl --user restart codexcomp` 收尾；否则跳过这一步，不能臆测存在部署。
+发布清单（每一步都做，按顺序）：在候选提交的 `pyproject.toml` 中 bump `version` → commit → push `master` → **等待该同一 SHA 的普通 CI 全绿** → 确认远端 tag 与 PyPI 尚未占用该版本 → push 匹配的带注解 `v*` tag（命令：`git tag -a vX.Y.Z -m "Release vX.Y.Z"`）。远端 tag 不移动、不复用；tag 后才发现问题时修复并发布下一个 patch。`v0.1.0` 至 `v0.3.8` 是 2026-08-17 annotated-tag 门禁上线前创建的轻量 tag，是既成事实，绝不补修或重新打 tag；门禁从下一个发布版本起适用。`.github/workflows/release.yml` 会再次调用共享 CI，校验 annotated tag、包版本、tag SHA 与 master 祖先关系，再经 Trusted Publishing 发布到 PyPI（OIDC，无存储 token）→ 确认该版本已在 PyPI 上线 → 用 `gh release create v* --title … --notes-file …` 创建 GitHub Release（workflow 不会做这一步；推了 tag 却没有 Release 会让 Releases 页显示过时的 latest；notes 以英文为主，在一条 `---` 之后附一小段 `### 中文说明`）→ systemd unit 运行来自 `~/.local/bin/codexcomp` 的 uv-tool 快照，且绝不自更新：只有明确存在活跃的本地 uv-tool/service 部署时，才以 `uv tool upgrade codexcomp` + `systemctl --user restart codexcomp` 收尾；否则跳过这一步，不能臆测存在部署。
 
 ## 架构
 
@@ -38,7 +38,7 @@ uv build                       # build sdist + wheel
 
 - **仅 Auth 透传**：`Authorization` header 原封不动地转发，绝不读取、持久化或记录。任何日志相关改动都要保持这一点。
 - **仅环回**：默认 bind 是 127.0.0.1，文档也告诉用户保持在那里。
-- **干净轮次逐字节透传**；折叠路径只在检测到截断时才介入。折叠的终止事件报告单响应用量（input 取自 round 1，reasoning 求和），真实累计成本在 `metadata.proxy_billed_usage` 下，逐轮明细在 `metadata.proxy_rounds` 下。
+- **干净轮次内容忠实**：正常 reasoning→output 形状下不丢失、不重排任何 output item，终止状态原样保留，且不额外插入上游轮次；但每个下游事件仍带代理自有的 `sequence_number` 与重新编号的 `output_index`，非 reasoning items 先缓冲、待轮次结束确认干净才释放（干净与否只有到用时才知道）。折叠路径只在检测到截断时才介入。折叠的终止事件报告单响应用量（input 取自 round 1，reasoning 求和），真实累计成本在 `metadata.proxy_billed_usage` 下，逐轮明细在 `metadata.proxy_rounds` 下。
 - 没有终止事件的上游 EOF、流中途错误、以及续写打开失败，都以一个合成的 `response.incomplete` 收尾；被拒的 round 1 以 `response.failed` 收尾——绝不静默丢弃或伪造已完成的回答。这些全部在 `fold()` 内部铸造，而非在传输层。
 - `README.md` 与 `README.zh-CN.md` 并行维护——用户可见的改动两者都要改。
 - Issue tracker 契约见 `docs/agents/issue-tracker.md`。

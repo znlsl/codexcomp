@@ -79,7 +79,8 @@ def _install_linux(argv: list[str]) -> None:
     if not shutil.which("systemctl"):
         raise RuntimeError(
             "systemctl not found. Write a unit manually or use your init system; "
-            "see the systemd example in the project README.")
+            "see systemd/codexcomp.service.example in the repository "
+            "(https://github.com/dzshzx/codexcomp/blob/master/systemd/codexcomp.service.example).")
     exec_start = " ".join(argv)
     unit = f"""[Unit]
 Description=codexcomp: local Responses proxy folding gpt-5.5 518n-2 reasoning truncation

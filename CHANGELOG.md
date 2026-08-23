@@ -3,6 +3,25 @@
 Notable changes to codexcomp. Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer with `0.0.1`-level steps for fixes.
 
+## [Unreleased]
+
+### Changed
+- Upstream round read timeout tightened from 600s to 120s: `read=` bounds the silence
+  between consecutive bytes, not total stream duration; 21 live-verified fold rounds
+  never exceeded a 30.74s gap, so 120s is a ~4x margin, and a blackholed proxy path no
+  longer pins a pool connection for 10 minutes per attempt.
+
+### Internal
+- Extracted the shared-client pool lifecycle (leases, generation rotation, retired-client
+  draining, pool/proxy diagnostics) out of `server.py` into `pool.py`.
+
+### CI
+- Releases are now gated on a `quality` job that reuses `ci.yml`, validates the release tag
+  is an annotated tag pointing at the release SHA, that the SHA is an ancestor of `master`,
+  and that the tag matches `pyproject.toml`'s version before building; adds wheel/sdist
+  smoke tests (`codexcomp --help`).
+- Pinned Actions runtimes used by `ci.yml` / `release.yml` to their current versions.
+
 ## [0.3.8] - 2026-07-17
 
 ### Fixed

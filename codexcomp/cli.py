@@ -111,7 +111,8 @@ def main() -> None:
 
     p_install = sub.add_parser(
         "install-service",
-        help="opt-in: register autostart (systemd user / launchd / scheduled task)")
+        help="opt-in: register autostart (systemd user / launchd; prints manual "
+             "Startup-shortcut steps on Windows, registers nothing there)")
     _add_run_flags(p_install, subcommand=True)
 
     sub.add_parser("uninstall-service", help="remove the autostart entry")
