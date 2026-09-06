@@ -1,7 +1,3 @@
-# Issue tracker: GitHub
+# 项目任务跟踪
 
-This repo's tracker is GitHub Issues (`dzshzx/codexcomp`), read and written via the `gh` CLI. External users can file issues here.
-
-## Status vocabulary
-
-The six-status vocabulary lives in `~/.config/agent-instructions/agent-workfiles.md`. Non-terminal issues remain open with a same-name status label and include the next step and its owner or unlocking condition; `resolved` issues are closed; `wontfix` issues are closed with a `wontfix` label. Create a label the first time it is needed.
+本仓使用 GitHub Issues（`dzshzx/codexcomp`），通过 gh CLI 操作；接受外部用户 issue。
