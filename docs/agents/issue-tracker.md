@@ -4,4 +4,4 @@ This repo's tracker is GitHub Issues (`dzshzx/codexcomp`), read and written via 
 
 ## Status vocabulary
 
-The six-status vocabulary, the mapping from the skills' five triage roles, and the GitHub label convention (non-terminal = open + same-name label; `resolved` = closed; `wontfix` = closed + `wontfix`) live in `~/.config/agent-instructions/agent-workfiles.md`, section 「Agent 工作文件」. Create a label the first time it is needed.
+The six-status vocabulary lives in `~/.config/agent-instructions/agent-workfiles.md`. Non-terminal issues remain open with a same-name status label and include the next step and its owner or unlocking condition; `resolved` issues are closed; `wontfix` issues are closed with a `wontfix` label. Create a label the first time it is needed.
