@@ -236,10 +236,27 @@ uv run python test_ws.py          # 传输层自测（WS 协议、响应头）�
 uv run codexcomp                  # 本地运行
 ```
 
-发布经 PyPI Trusted Publishing（OIDC，无存储 token）：先把候选版本提交到 `master`，
-等待该同一提交的 CI 全绿，再推送匹配的带注解 `v*` tag。tag 不移动、不复用；已打 tag
-的候选若失败，修复后发布下一个 patch。Release 会重跑共享 CI，并在上传前校验 tag、
-包版本和 `master` 祖先关系。版本历史见 [CHANGELOG.md](CHANGELOG.md)。
+发布经 PyPI Trusted Publishing（OIDC，无存储 token）。修改包版本前，先从远端 tag 历史
+生成只读版本计划：
+
+```bash
+python scripts/version_plan.py plan --repository dzshzx/codexcomp --target v=X.Y.Z
+```
+
+精确递增一个 patch 可沿用已有发布授权；minor、major 或跳号 patch 必须暂停，
+等用户明确确认输出的完整“基线到目标”计划。基线未知和降级会直接拒绝。确认后把候选版本
+提交到 `master`，等待该同一提交的 CI 全绿，再推送匹配的带注解 `v*` tag。跨级计划须把
+输出的摘要写进 tag 消息：
+
+```bash
+git tag -a vX.Y.Z -m "Release vX.Y.Z" \
+  -m "Version-Approval: sha256:<version_plan.py 输出的摘要>"
+```
+
+只有精确递增一个 patch 时可以省略该 trailer。tag 不移动、不复用；已打 tag
+的候选若失败，修复后发布下一个 patch。Release 会排除本次 tag 并重建计划，基线或目标
+变化时在上传前拒绝。摘要只证明计划一致，不构成独立的身份审批。Release 还会重跑共享
+CI，并校验 tag、包版本和 `master` 祖先关系。版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 参与贡献
 

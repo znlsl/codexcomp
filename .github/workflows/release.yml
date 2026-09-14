@@ -52,6 +52,10 @@ jobs:
           if actual != expected:
               raise SystemExit(f"release tag {actual!r} does not match {expected!r}")
           PY
+          python scripts/version_plan.py verify \
+            --repository dzshzx/codexcomp \
+            --target "v=${RELEASE_TAG#v}" \
+            --tag-ref "refs/tags/${RELEASE_TAG}"
 
       - name: Install uv
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0

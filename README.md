@@ -264,10 +264,29 @@ uv run python test_ws.py          # transport self-test (WS protocol, headers) â
 uv run codexcomp                  # run locally
 ```
 
-Releases go out via PyPI Trusted Publishing (OIDC, no stored token). Put the candidate version
-on `master`, wait for CI on that exact commit to pass, then push a matching annotated `v*` tag.
-Tags are immutable: a failed tagged candidate is fixed in the next patch, never moved or reused.
-The release workflow reruns the shared CI gate and verifies that the tag matches the package
+Releases go out via PyPI Trusted Publishing (OIDC, no stored token). Before changing the package
+version, print the read-only plan from remote tag history:
+
+```bash
+python scripts/version_plan.py plan --repository dzshzx/codexcomp --target v=X.Y.Z
+```
+
+The exact next patch can proceed under existing release authorization.
+A minor, major, or skipped-patch target pauses until the user explicitly confirms the printed
+baseline-to-target plan. Unknown baselines and downgrades stop the release. Put the candidate
+version on `master`, wait for CI on that exact commit to pass, then push a matching annotated
+`v*` tag. For a confirmed cross-level plan, include the printed digest in the tag message:
+
+```bash
+git tag -a vX.Y.Z -m "Release vX.Y.Z" \
+  -m "Version-Approval: sha256:<digest printed by version_plan.py>"
+```
+
+The trailer is optional only for the exact next patch. Tags are
+immutable: a failed tagged candidate is fixed in the next patch, never moved or reused. The
+release workflow rebuilds the plan, excluding the tag under test, and rejects a changed baseline
+or target before publishing. The digest records plan consistency; it is not an independent
+identity approval. The workflow reruns the shared CI gate and verifies that the tag matches the package
 version and points into `master` before publishing. Version history: [CHANGELOG.md](CHANGELOG.md).
 
 ## Contributing

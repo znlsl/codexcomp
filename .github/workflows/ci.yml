@@ -67,6 +67,9 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Test version authorization plan
+        run: python -m unittest discover -s scripts/tests -p "test_*.py"
+
       - name: Build distributions
         run: uv build
 
